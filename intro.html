@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Tetris | Classic Puzzle Game</title>
+
+  <!-- Retro pixel font -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+  <style>
+    /* BASIC RESET: Ensures consistent styling across browsers */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box; /* Makes padding and border part of the element's total width/height */
+    }
+
+    /* BODY STYLES: Sets up the full page background and font */
+    body {
+      height: 100vh; /* Occupies 100% of the viewport height */
+      width: 100vw;  /* Occupies 100% of the viewport width */
+      overflow: hidden; /* Prevents scrollbars if content overflows */
+      font-family: 'Press Start 2P', cursive; /* Applies our retro pixel font */
+      color: #fff; /* Default text color is white */
+
+      /* Background image setup */
+      /* 👇 IMPORTANT: Make sure 'tetris-background.png' exists in the same folder as this HTML file! */
+      background-image: url('tetris-background.png'); 
+      background-size: cover; /* Stretches the image to cover the entire body */
+      background-position: center; /* Centers the image */
+      background-repeat: no-repeat; /* Prevents the image from tiling */
+      background-attachment: fixed; /* Makes the background fixed, so it doesn't scroll with content */
+
+      /* Smooth parallax animation for the background */
+      animation: moveBackground 20s linear infinite alternate;
+    }
+
+    /* KEYFRAMES FOR BACKGROUND ANIMATION: Moves the background image up and down */
+    @keyframes moveBackground {
+      from {
+        background-position: center top; /* Start from the top center */
+      }
+      to {
+        background-position: center bottom; /* Move to the bottom center */
+      }
+    }
+
+    /* OVERLAY: Creates a dark, semi-transparent layer over the background */
+    .overlay {
+      position: absolute; /* Positions it relative to the nearest positioned ancestor (body in this case) */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.45); /* Black with 45% transparency */
+      display: flex; /* Uses Flexbox for easy centering */
+      flex-direction: column; /* Stacks items vertically */
+      justify-content: center; /* Centers items vertically */
+      align-items: center; /* Centers items horizontally */
+      text-align: center; /* Centers text within the overlay */
+
+      /* NEW: Transition for fading out the overlay */
+      transition: opacity 1s ease-out; /* Add a smooth transition for opacity */
+    }
+
+    /* NEW: Class to trigger the fade-out */
+    .overlay.fade-out {
+      opacity: 0; /* Make the overlay completely transparent */
+    }
+
+    /* NEON YELLOW GLOWING TITLE */
+    .title {
+      font-size: 2.5rem; /* Larger font size */
+      color: #fff700; /* Neon yellow color */
+      /* Multiple text-shadows create the glowing effect */
+      text-shadow:
+        0 0 10px #fff700,
+        0 0 20px #fff700,
+        0 0 40px #ffea00,
+        0 0 80px #ffea00,
+        0 0 100px #ffea00;
+      margin-bottom: 1.5rem; /* Space below the title */
+      animation: glow 2s ease-in-out infinite alternate; /* Applies the glowing animation */
+    }
+
+    /* SUBTITLE/BUTTON TEXT: Styled to look like a retro button */
+    .subtitle {
+      font-size: 1.2rem;
+      color: #ff00ff; /* Neon pink/magenta */
+      text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; /* Glowing effect */
+      cursor: pointer; /* Changes mouse cursor to a pointer on hover */
+      transition: transform 0.2s ease, text-shadow 0.3s ease; /* Smooth animation for hover effects */
+      background: none; /* Make button transparent */
+      border: none; /* Remove button border */
+      padding: 0; /* Remove default button padding */
+      font-family: 'Press Start 2P', cursive; /* Inherit retro font */
+      outline: none; /* Remove outline on focus for a cleaner look */
+    }
+
+    /* Style for disabled button */
+    .subtitle[disabled] { 
+        cursor: not-allowed; /* Show a "not allowed" cursor */
+        opacity: 0.6; /* Dim the button */
+        filter: grayscale(50%); /* Make it slightly desaturated */
+        transform: none; /* Remove any transform on disabled state */
+        text-shadow: none; /* Remove glow on disabled state */
+    }
+
+    /* SUBTITLE/BUTTON HOVER EFFECT: Makes it grow and glow brighter on hover */
+    /* Added :not([disabled]) for clarity, though CSS specificity handles it */
+    .subtitle:hover:not([disabled]) { 
+      transform: scale(1.1); /* Makes the text 10% larger */
+      text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; /* Increases glow intensity */
+    }
+
+    /* KEYFRAMES FOR TITLE GLOW: Makes the title pulsate with glow */
+    @keyframes glow {
+      from {
+        text-shadow:
+          0 0 10px #fff700,
+          0 0 20px #fff700,
+          0 0 40px #ffea00,
+          0 0 60px #ffea00;
+      }
+      to {
+        text-shadow:
+          0 0 20px #ffea00,
+          0 0 40px #fff700,
+          0 0 80px #fff700,
+          0 0 120px #fff700;
+      }
+    }
+
+    /* --- NEW CSS FOR THE COPYRIGHT FOOTER --- */
+    .copyright-footer {
+        position: absolute; /* Position it relative to its parent (.overlay) */
+        bottom: 1.5rem; /* Distance from the bottom of the overlay (approx. py-6 from Tailwind) */
+        left: 50%; /* Start at the horizontal center */
+        transform: translateX(-50%); /* Shift back by half its width to truly center it */
+        width: 100%; /* Allow it to take full width to center text reliably */
+        max-width: 90%; /* Prevent it from stretching too wide on very large screens */
+        font-size: 0.75rem; /* 'text-xs' equivalent (smaller font size) */
+        color: #b0b0b0; /* A light slate-like grey color ('text-slate-500' equivalent) */
+        text-align: center; /* 'text-center' equivalent */
+        padding: 0 1rem; /* Horizontal padding (approx. px-4 from Tailwind) */
+        z-index: 10; /* Ensures it stays on top if other elements might overlap */
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <h1 class="title">WELCOME TO NEON TETRIS</h1>
+    <button class="subtitle" id="startButton">Press Start to Play</button> 
+
+    <!-- 👇 NEW: Your copyright footer is placed here! -->
+    <footer class="copyright-footer">
+        <p>© 2025 Neon Tetris | All rights reserved</p>
+    </footer>
+    <!-- 👆 END NEW -->
+
+  </div>
+
+  <script>
+    // JavaScript function to be called when the "Press Start" button is clicked
+    function startGame() {
+      const overlay = document.querySelector('.overlay');
+      const startButton = document.getElementById('startButton'); 
+
+      // 1. Disable the button immediately to prevent multiple clicks
+      // This is a great user experience improvement!
+      startButton.disabled = true; 
+
+      // 2. Add the 'fade-out' class to the overlay.
+      // This triggers the CSS transition (opacity: 0) defined in your <style> block.
+      overlay.classList.add('fade-out'); 
+
+      // 3. Wait for the CSS transition to finish.
+      // The 'setTimeout' duration (1000ms) matches the 'transition' duration in your CSS.
+      setTimeout(() => {
+        // 4. Redirect to your main Tetris game page.
+        // 👇 IMPORTANT: Make sure 'tetris-game.html' exists in the same folder or update its path!
+        window.location.href = 'tetris-game.html'; 
+      }, 1000); 
+    }
+
+    // Attach the event listener after the DOM (Document Object Model) is fully loaded.
+    // This is a best practice to ensure that the 'startButton' element exists before we try to find and attach an event to it.
+    document.addEventListener('DOMContentLoaded', () => {
+      const startButton = document.getElementById('startButton');
+      if (startButton) { // Good practice: Check if the button was found before attaching the event.
+        startButton.addEventListener('click', startGame);
+      }
+    });
+  </script>
+</body>
+</html>
