@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Tetris | Classic Puzzle Game</title>
+
+  <!-- Retro pixel font -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      font-family: 'Press Start 2P', cursive;
+      color: #fff;
+      background-image: url('tetris-background.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      animation: moveBackground 20s linear infinite alternate;
+    }
+
+    @keyframes moveBackground {
+      from { background-position: center top; }
+      to { background-position: center bottom; }
+    }
+
+    /* Floating neon dust particles */
+    .particles::before, .particles::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle, #ff00ff33 1px, transparent 1px);
+      background-size: 3px 3px;
+      animation: flicker 3s infinite alternate;
+      opacity: 0.2;
+      z-index: 0;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.3; }
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: opacity 1s ease-out;
+      z-index: 1;
+    }
+
+    .overlay.fade-out { opacity: 0; }
+
+    .title {
+      font-size: 2.5rem;
+      color: #fff700;
+      text-shadow:
+        0 0 10px #fff700,
+        0 0 20px #fff700,
+        0 0 40px #ffea00,
+        0 0 80px #ffea00,
+        0 0 100px #ffea00;
+      margin-bottom: 1.5rem;
+      animation: glow 2s ease-in-out infinite alternate, fadeInUp 1.5s ease forwards;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #fff700, 0 0 20px #fff700, 0 0 40px #ffea00; }
+      to { text-shadow: 0 0 20px #ffea00, 0 0 40px #fff700, 0 0 80px #fff700; }
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #ff00ff;
+      text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+      cursor: pointer;
+      /* FIX 1: Cleaned up transition property.
+         - 'opacity' and 'transform' for initial fade-in/slide-up use 1.5s.
+         - 'text-shadow' for both states uses 0.3s.
+         - 'transform' for hover will be defined specifically in :hover for a quicker transition.
+      */
+      transition: opacity 1.5s ease, transform 1.5s ease, text-shadow 0.3s ease;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: 'Press Start 2P', cursive;
+      outline: none;
+      opacity: 0; /* Start hidden */
+      transform: translateY(30px); /* Start off-screen for the fadeInUp effect */
+      pointer-events: none; /* Prevent clicks when hidden initially */
+    }
+
+    .subtitle:hover {
+      transform: scale(1.1);
+      text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+      /* Define a separate, quicker transition for transform on hover */
+      transition: transform 0.2s ease, text-shadow 0.3s ease;
+    }
+
+    /* The fadeInUp animation is no longer used for the subtitle's initial appearance,
+       but is kept for the title if needed elsewhere. */
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .press-key {
+      font-size: 1rem;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      animation: blink 1s infinite;
+      margin-top: 2rem;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+
+    .copyright-footer {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 90%;
+      font-size: 0.75rem;
+      color: #b0b0b0;
+      text-align: center;
+      padding: 0 1rem;
+      z-index: 10;
+    }
+
+    /* --- NEW STYLES FOR LOADING SCREEN --- */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    }
+
+    .loading-screen.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .loading-text {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 2.5rem;
+      color: #fff;
+      text-shadow:
+        0 0 10px #fff,
+        0 0 20px #fff,
+        0 0 40px #00ffff,
+        0 0 80px #00ffff,
+        0 0 100px #00ffff;
+      animation: loadingGlow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes loadingGlow {
+      from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 40px #00ffff; }
+      to { text-shadow: 0 0 20px #fff, 0 0 40px #00ffff, 0 0 80px #00ffff; }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles"></div>
+
+  <div class="overlay">
+    <h1 class="title">WELCOME TO NEON TETRIS</h1>
+    <button class="subtitle" id="startButton">Press Start to Play</button>
+    <p class="press-key">Press Any Key to Continue</p>
+
+    <footer class="copyright-footer">
+      <p>© 2025 Neon Tetris | All rights reserved</p>
+    </footer>
+  </div>
+
+  <!-- --- NEW HTML FOR LOADING SCREEN --- -->
+  <div class="loading-screen" id="loadingScreen">
+    <p class="loading-text">LOADING...</p>
+  </div>
+
+  <!-- Background Music -->
+  <audio id="bgMusic" src="tetris-theme.mp3" loop></audio>
+  <!-- Click Sound -->
+  <audio id="clickSound" src="click.mp3"></audio>
+
+ <script>
+    const bgMusic = document.getElementById('bgMusic');
+    const clickSound = document.getElementById('clickSound');
+    const pressKey = document.querySelector('.press-key');
+    const startButton = document.getElementById('startButton');
+    const overlay = document.querySelector('.overlay');
+    const loadingScreen = document.getElementById('loadingScreen');
+
+    // Wait for user interaction before starting audio (browser policy)
+    document.addEventListener('keydown', () => {
+      pressKey.style.display = 'none'; // Hide "Press Any Key"
+
+      // Make the start button appear with a smooth fade-in and slide-up effect
+      startButton.style.opacity = '1';
+      startButton.style.transform = 'translateY(0)';
+
+      // FIX: Delay enabling pointer-events until the animation is complete
+      // The subtitle's entrance animation (fade-in/slide-up) takes 1.5 seconds.
+      setTimeout(() => {
+        startButton.style.pointerEvents = 'auto'; // Re-enable clicks AFTER animation
+      }, 1500); // 1500ms = 1.5 seconds, matching the CSS transition duration
+
+      bgMusic.volume = 0.2;
+      bgMusic.play().catch(() => {}); // Play background music
+    }, { once: true });
+
+    function startGame() {
+      startButton.disabled = true; // Disable the button to prevent multiple clicks
+      clickSound.play(); // Play click sound
+
+      // Define durations (good practice to use constants for magic numbers)
+      const overlayFadeOutDuration = 1000; // Matches .overlay.fade-out transition
+      const loadingScreenDisplayDuration = 2000; // Desired duration for "LOADING..." message
+
+      // Step 1: Start fading out the initial 'overlay' immediately.
+      // This will take `overlayFadeOutDuration` (1 second) to complete.
+      overlay.classList.add('fade-out');
+
+      // Step 2: After the 'overlay' has fully faded out, show the 'loadingScreen'.
+      setTimeout(() => {
+        // Now, make the loading screen visible. It will fade in over 0.5s due to its CSS transition.
+        loadingScreen.classList.add('visible');
+
+        // Step 3: After the 'loadingScreen' has been displayed for its duration, redirect.
+        // The timer for this starts immediately when `loadingScreen.classList.add('visible')` is called.
+        setTimeout(() => {
+          // At this point, the loading screen has been visible for `loadingScreenDisplayDuration`.
+          // We can now redirect to the game page.
+          window.location.href = 'tetris-game.html';
+        }, loadingScreenDisplayDuration);
+
+      }, overlayFadeOutDuration); // This timeout waits for the initial overlay to fade out
+    }
+
+    startButton.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
